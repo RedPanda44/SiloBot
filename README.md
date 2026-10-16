@@ -345,6 +345,57 @@ To update the bot, push to GitHub and redeploy from the dashboard (or use
 
 ---
 
+## 12. Run 24/7 on your Android phone (Termux)
+
+Yes — an old phone works as a free always-on server. It just has to stay powered
+and connected to Wi-Fi/mobile data.
+
+**Install Termux** from [F-Droid](https://f-droid.org/packages/com.termux/) (the
+Play Store build is outdated). Then:
+
+```sh
+pkg update && pkg upgrade
+pkg install nodejs-lts git
+git clone https://github.com/RedPanda44/SiloBot.git
+cd SiloBot
+npm install
+cp .env.example .env
+nano .env                 # fill in DISCORD_TOKEN, CLIENT_ID, GUILD_ID
+sh scripts/termux-start.sh
+```
+
+`scripts/termux-start.sh` grabs a **wake lock** (so Android doesn't freeze it)
+and **auto-restarts** the bot if it crashes, logging to `bot.log`. To keep it
+running after you close the app, use **tmux**:
+
+```sh
+pkg install tmux
+tmux new -s silo
+sh scripts/termux-start.sh   # detach with Ctrl+B then D
+```
+
+**Make it survive reboots (optional):** install the
+[Termux:Boot](https://f-droid.org/packages/com.termux.boot/) add-on, then create
+`~/.termux/boot/silo.sh`:
+
+```sh
+#!/data/data/com.termux/files/usr/bin/sh
+termux-wake-lock
+cd ~/SiloBot
+tmux new -d -s silo "sh scripts/termux-start.sh"
+```
+
+**Phone settings for reliability:**
+
+- Disable battery optimization / set Termux to **Unrestricted** (Settings → Apps
+  → Termux → Battery).
+- Keep the phone plugged in and Wi-Fi on (turn off Wi-Fi sleep).
+- Update the bot with `git pull && npm install` then restart the tmux session.
+
+> Trade-offs: a phone is fine for a small bot, but it reboots for updates, may be
+> throttled when hot, and drops offline if the network blips. A host like Discloud
+> (section 11) is more reliable if you have the option.
+
 ## Troubleshooting
 
 | Problem | Fix |
