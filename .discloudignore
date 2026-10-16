@@ -1,0 +1,12 @@
+node_modules
+.git
+.github
+.env
+data
+*.log
+npm-debug.log*
+README.md
+Dockerfile
+.dockerignore
+.gitignore
+discloud.config

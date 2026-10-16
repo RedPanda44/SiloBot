@@ -298,48 +298,50 @@ Edit `src/config.js`:
 
 ---
 
-## 11. Run 24/7 on Koyeb (free)
+## 11. Run 24/7 on Discloud
 
-A Discord bot is a long-running **worker** (it never listens on a port), which is
-exactly what Koyeb's free tier runs. The included `Dockerfile` is all Koyeb needs.
-Set the bot's environment variables (see `.env.example`):
+[Discloud](https://discloud.app) hosts Discord bots directly from a GitHub repo and
+keeps them online. It reads the **`discloud.config`** at the root of the project
+(already included) and injects your secrets as a runtime `.env`.
+
+Environment variables are **only** set in the Discloud dashboard (never commit
+`.env`). Add these (see `.env.example`):
 
 | Variable | Value |
 | --- | --- |
-| `DISCORD_TOKEN` | your bot token (add as a **secret**) |
+| `DISCORD_TOKEN` | your bot token |
 | `CLIENT_ID` | your application id |
 | `GUILD_ID` | your test server id |
 | `ANNOUNCE_REPO` | `RedPanda44/Silo` (optional) |
 | `ANNOUNCE_POLL_MINUTES` | `15` (optional) |
 
-1. **Push the code to GitHub** (from this folder):
+1. **Code is on GitHub** — `https://github.com/RedPanda44/SiloBot`.
+2. Open the [Discloud dashboard](https://discloud.app) → **Applications** →
+   **+ Upload** → choose **GitHub** as the deploy type.
+3. Pick the repository (**SiloBot**) and branch (**main**).
+4. Add the environment variables above in the **NAME / value** fields.
+5. **Upload/Deploy** — Discloud pulls the code, installs dependencies from
+   `package.json`, and starts `src/index.js`.
+6. Once it's online, run **`/setup server`** in Discord (the fresh data dir is
+   empty).
 
-   ```powershell
-   git init
-   git add .
-   git commit -m "Silo community bot"
-   git branch -M main
-   git remote add origin https://github.com/<you>/<repo>.git
-   git push -u origin main
-   ```
+The `discloud.config` used:
 
-   `.env` is gitignored, so your token is never pushed.
+```ini
+NAME=SiloBot
+TYPE=bot
+MAIN=src/index.js
+RAM=256
+VERSION=latest
+AUTORESTART=true
+```
 
-2. **Create the service on Koyeb**: [app.koyeb.com](https://app.koyeb.com) →
-   **Create Service** → **GitHub** → pick the repo.
-3. **Builder**: Dockerfile (auto-detected). **Service type**: **Worker**.
-   **Instance**: the free **Nano**.
-4. **Environment variables**: add the table above (`DISCORD_TOKEN` flagged as a
-   secret). Deploy.
-5. Once it's running, run **`/setup server`** in Discord to create the roles,
-   channels, rules and panels.
+> Discloud's filesystem is **ephemeral**: `data/store.json` (levels, warnings,
+> ticket mappings) resets on every redeploy. The server structure and config
+> survive — just run `/setup server` again.
 
-> Koyeb's filesystem is **ephemeral**: `data/store.json` (levels, warnings, ticket
-> mappings) resets on every redeploy. The server structure and config survive —
-> just run `/setup server` again. For durable data, attach a Koyeb volume mounted
-> at `/app/data` (paid) or move `src/lib/storage.js` to SQLite/a hosted DB later.
-
-To update the bot, just push to GitHub — Koyeb redeploys automatically.
+To update the bot, push to GitHub and redeploy from the dashboard (or use
+`discloud up` with the [CLI](https://docs.discloud.com)).
 
 ---
 
@@ -349,7 +351,7 @@ To update the bot, just push to GitHub — Koyeb redeploys automatically.
 | --- | --- |
 | `DISCORD_TOKEN is missing` | You forgot to create `.env` (copy the template). |
 | Slash commands don't show | Run `npm run deploy`; set `GUILD_ID` for instant testing. |
-| Bot is offline | The process stopped — run it under PM2/Docker, or deploy to Koyeb (see section 11). |
+| Bot is offline | The process stopped — run it under PM2/Docker, or deploy to Discloud (see section 11). |
 | Welcome/autorole not firing | Enable the **Server Members Intent** in the portal. |
 | Leveling not working | Enable the **Message Content Intent** in the portal. |
 | "I am missing permissions" | Move the bot's role higher, or grant the listed permission. |
